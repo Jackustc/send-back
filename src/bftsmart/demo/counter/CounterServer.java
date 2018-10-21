@@ -41,6 +41,19 @@ public final class CounterServer extends DefaultSingleRecoverable  {
     private int counter = 0;
     private int iterations = 0;
     
+
+    public static void test(){
+        System.out.println("test jpype server\n");
+    }
+
+    public static void passArgs(String[] args){
+        if(args.length < 1) {
+            System.out.println("Use: java CounterServer <processId>");
+            System.exit(-1);
+        }      
+        new CounterServer(Integer.parseInt(args[0]));
+    }
+
     public CounterServer(int id) {
     	new ServiceReplica(id, this, this);
     }

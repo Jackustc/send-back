@@ -31,7 +31,11 @@ import bftsmart.tom.util.Logger;
  */
 public class CounterClient {
 
-    public static void main(String[] args) throws IOException {
+    public static void test(){
+        System.out.println("test jpype\n");
+    }
+
+    public static void passArg(String[] args) throws IOException{
         if (args.length < 2) {
             System.out.println("Usage: java ... CounterClient <process id> <increment> [<number of operations>]");
             System.out.println("       if <increment> equals 0 the request will be read-only");
@@ -47,6 +51,8 @@ public class CounterClient {
 
             int inc = Integer.parseInt(args[1]);
             int numberOfOps = (args.length > 2) ? Integer.parseInt(args[2]) : 1000;
+
+            long last_send_instant = System.nanoTime();
 
             for (int i = 0; i < numberOfOps; i++) {
 
@@ -66,6 +72,58 @@ public class CounterClient {
                     break;
                 }
             }
+
+            long end = System.nanoTime();
+            long latency = end - last_send_instant;
+            System.out.print("Latency for " + numberOfOps + " requests: " + latency/1000000 + " us");
+
+        } catch(IOException | NumberFormatException e){
+            counterProxy.close();
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        if (args.length < 2) {
+            System.out.println("Usage: java ... CounterClient <process id> <increment> [<number of operations>]");
+            System.out.println("       if <increment> equals 0 the request will be read-only");
+            System.out.println("       default <number of operations> equals 1000");
+            System.exit(-1);
+        }
+
+        ServiceProxy counterProxy = new ServiceProxy(Integer.parseInt(args[0]));
+
+        Logger.debug = false;
+        
+        try {
+
+            int inc = Integer.parseInt(args[1]);
+            int numberOfOps = (args.length > 2) ? Integer.parseInt(args[2]) : 1000;
+
+            long last_send_instant = System.nanoTime();
+
+            for (int i = 0; i < numberOfOps; i++) {
+
+                ByteArrayOutputStream out = new ByteArrayOutputStream(4);
+                new DataOutputStream(out).writeInt(inc);
+
+                System.out.print("Invocation " + i);
+                byte[] reply = (inc == 0)?
+                        counterProxy.invokeUnordered(out.toByteArray()):
+                	counterProxy.invokeOrdered(out.toByteArray()); //magic happens here
+                
+                if(reply != null) {
+                    int newValue = new DataInputStream(new ByteArrayInputStream(reply)).readInt();
+                    System.out.println(", returned value: " + newValue);
+                } else {
+                    System.out.println(", ERROR! Exiting.");
+                    break;
+                }
+            }
+
+            long end = System.nanoTime();
+            long latency = end - last_send_instant;
+            System.out.print("Latency for " + numberOfOps + " requests: " + latency/1000000 + " us");
+
         } catch(IOException | NumberFormatException e){
             counterProxy.close();
         }

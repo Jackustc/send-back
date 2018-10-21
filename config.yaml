@@ -1,0 +1,7 @@
+orderer:
+   replicas: 4
+   f: 1
+
+endorser:
+   host: 127.0.0.1
+   baseport: 5000
