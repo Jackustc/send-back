@@ -54,14 +54,20 @@ if __name__ == '__main__':
         #   设置IP和端口
             host = socket.gethostname()
             mySocket = connect_to_channel(host,3333,j)
+            mySocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             tag = True
             while tag:            
         #   接收客户端连接
                 print("Waiting for connecting....")
                 
-                client, address = mySocket.accept()
+                try:
+                    client, address = mySocket.accept()
+                except: 
+                    client, address = mySocket.accept()
+                print(client)
                 msg = client.recv(1024)                
                 print 'receive from server',j,':', msg.decode('utf-8')
+                mySocket.close()
                 tag = False
                 
 

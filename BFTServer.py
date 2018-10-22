@@ -49,8 +49,12 @@ def listen_to_channel(sock,replicaID):
 
                 #   设置ip和端口
                 host = socket.gethostname()
-                print(22222)
-                mySocket = connect_to_channel2(host,3333,replicaID)
+                tag_conn = True
+                while tag_conn:
+                    try:
+                        mySocket = connect_to_channel2(host,3333,replicaID)
+                        tag_conn = False
+                    except: continue
                 print(11111)
                 mySocket.send('Hello World!'.encode())
                 #mySocket.close()
